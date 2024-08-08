@@ -21,7 +21,7 @@ func (r *EventRepository) Save(event model.Event) error {
 	}
 
 	_, err = r.db.Exec(`
-        INSERT INTO events (id, type, payload, timestamp)
+        INSERT INTO events_tb (identifier, event_type, transaction, created_at)
         VALUES ($1, $2, $3, $4)
     `, event.ID, event.Type, payloadJSON, event.Timestamp)
 	return err

@@ -1,24 +1,23 @@
 package controller
 
 import (
+	"encoding/json"
+	"github.com/google/uuid"
 	"net/http"
+	"notification-api/application"
+	"notification-api/infrastructure/util"
 	"time"
 
-	"notification-api/application"
+	"github.com/gin-gonic/gin"
 	"notification-api/domain/model"
 	"notification-api/infrastructure/config/event"
-	"notification-api/infrastructure/util"
-
-	"github.com/gin-gonic/gin"
 )
 
 type NotificationRequest struct {
-	Identifier string            `json:"identifier"`
 	Contact    string            `json:"contact"`
 	Subject    string            `json:"subject"`
 	Template   string            `json:"template"`
 	Parameters []model.Parameter `json:"parameters"`
-	CreatedAt  time.Time         `json:"created_at"`
 }
 
 type NotificationController struct {
@@ -30,29 +29,39 @@ func NewNotificationController(publisher *event.Publisher) NotificationControlle
 }
 
 func (p *NotificationController) SendNotification(ctx *gin.Context) {
+	body, err := ctx.GetRawData()
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "could not read request body"})
+		return
+	}
+
+	payload := string(body)
 	var req NotificationRequest
-	if err := ctx.ShouldBindJSON(&req); err != nil {
+
+	if err := json.Unmarshal(body, &req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	processedTemplate := util.ProcessTemplate(req.Template, req.Parameters)
+	templateWithParameters := util.ProcessTemplate(req.Template, req.Parameters)
 	notification := model.Notification{
 		To:      req.Contact,
 		Subject: req.Subject,
-		Body:    processedTemplate,
+		Body:    templateWithParameters,
 	}
-	if err := application.SendNotification(notification); err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
+
+	go func() {
+		if err := application.SendNotification(notification); err != nil {
+			println("Error sending email:", err.Error())
+		}
+	}()
+
 	eventMessage := model.Event{
-		ID:        req.Identifier,
+		ID:        uuid.New().String(),
 		Type:      "NotificationSent",
-		Payload:   map[string]interface{}{"to": req.Contact, "subject": "Notification Subject", "body": processedTemplate},
-		Timestamp: time.Now().Unix(),
+		Payload:   payload,
+		Timestamp: time.Now(),
 	}
 	p.eventPublisher.Publish(eventMessage)
-
-	ctx.JSON(http.StatusOK, gin.H{"status": "notification sent", "processed_template": processedTemplate})
+	ctx.JSON(http.StatusOK, gin.H{"status": "Notification sent successfully!"})
 }
