@@ -3,6 +3,7 @@ package repository
 import (
 	"database/sql"
 	"encoding/json"
+	"notification-api/domain/model"
 )
 
 type EventRepository struct {
@@ -13,14 +14,7 @@ func NewEventRepository(db *sql.DB) *EventRepository {
 	return &EventRepository{db: db}
 }
 
-type Event struct {
-	ID        string
-	Type      string
-	Payload   map[string]interface{}
-	Timestamp int64
-}
-
-func (r *EventRepository) SaveEvent(event Event) error {
+func (r *EventRepository) Save(event model.Event) error {
 	payloadJSON, err := json.Marshal(event.Payload)
 	if err != nil {
 		return err

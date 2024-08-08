@@ -1,15 +1,24 @@
 package application
 
-import "notification-api/domain/model"
+import (
+	"notification-api/domain/model"
+	"notification-api/infrastructure/config/repository"
+)
 
 type CreateEvent struct {
-	// gateway
+	eventRepository *repository.EventRepository
 }
 
-func NewCreateEvent() CreateEvent {
-	return CreateEvent{}
+func NewCreateEvent(repo *repository.EventRepository) *CreateEvent {
+	return &CreateEvent{
+		eventRepository: repo,
+	}
 }
 
-func (createEvent *CreateEvent) Execute(model.Event, error) {
-
+func (ce *CreateEvent) Execute(event model.Event) error {
+	err := ce.eventRepository.Save(event)
+	if err != nil {
+		return err
+	}
+	return nil
 }

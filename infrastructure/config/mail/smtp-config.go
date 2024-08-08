@@ -1,6 +1,11 @@
 package mail
 
-import "gopkg.in/gomail.v2"
+import (
+	"fmt"
+	"gopkg.in/gomail.v2"
+	"os"
+	"strconv"
+)
 
 type SMTPClient struct {
 	Host     string
@@ -12,13 +17,18 @@ type SMTPClient struct {
 
 var SMTP *SMTPClient
 
-func StartSmpt(host string, port int, username, password string) {
+var host = os.Getenv("SMTP_HOST")
+var username = os.Getenv("SMTP_USERNAME")
+var password = os.Getenv("SMTP_PASSWORD")
+
+func Start() {
+	port, err := strconv.Atoi(os.Getenv("SMTP_PORT"))
+	if err != nil {
+		fmt.Println("Error converting string to int:", err)
+		return
+	}
 	SMTP = &SMTPClient{
-		Host:     host,
-		Port:     port,
-		Username: username,
-		Password: password,
-		Dialer:   gomail.NewDialer(host, port, username, password),
+		Dialer: gomail.NewDialer(host, port, username, password),
 	}
 }
 

@@ -2,19 +2,26 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
-	"notification-api/domain/model"
+	"notification-api/infrastructure/config/database"
 	"notification-api/infrastructure/config/event"
+	"notification-api/infrastructure/config/mail"
+	"notification-api/infrastructure/config/repository"
+	"notification-api/infrastructure/controller"
 )
 
 func main() {
-	server := gin.Default()
-	eventPublisher := event.NewEventPublisher()
-	eventPublisher.Listen(func(event model.Event) {
-		// save-event-use-case
-	})
 
-	err := server.Run(":9000")
-	if err != nil {
-		return
-	}
+	mail.Start()
+	database.Start()
+
+	eventRepo := repository.NewEventRepository(database.DB)
+	eventPublisher := event.NewEventPublisher(eventRepo)
+	eventPublisher.Listen()
+
+	notificationController := controller.NewNotificationController(eventPublisher)
+
+	r := gin.Default()
+	r.POST("/send-notification", notificationController.SendNotification)
+
+	r.Run(":8080")
 }

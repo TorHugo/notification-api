@@ -7,14 +7,7 @@ import (
 	"notification-api/infrastructure/config/mail"
 )
 
-type SmtpClient struct {
-	host     string
-	port     int
-	username string
-	password string
-}
-
-func execute(notification model.Notification) error {
+func SendNotification(notification model.Notification) error {
 	msg := gomail.NewMessage()
 	msg.SetHeader("From", mail.SMTP.Username)
 	msg.SetHeader("To", notification.To)

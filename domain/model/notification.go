@@ -7,5 +7,5 @@ type Notification struct {
 	To         string    `json:"to"`
 	Subject    string    `json:"subject"`
 	Body       string    `json:"body"`
-	CreatedAt  time.Time `json:"createdAt"`
+	CreatedAt  time.Time `json:"created-at"`
 }
