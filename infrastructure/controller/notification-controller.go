@@ -1,67 +1,46 @@
 package controller
 
 import (
-	"encoding/json"
+	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"net/http"
-	"notification-api/application"
-	"notification-api/infrastructure/util"
-	"time"
-
-	"github.com/gin-gonic/gin"
 	"notification-api/domain/model"
 	"notification-api/infrastructure/config/event"
+	"notification-api/infrastructure/controller/models"
+	"notification-api/infrastructure/service"
+	"time"
 )
 
-type NotificationRequest struct {
-	Contact    string            `json:"contact"`
-	Subject    string            `json:"subject"`
-	Template   string            `json:"template"`
-	Parameters []model.Parameter `json:"parameters"`
-}
-
 type NotificationController struct {
+	service        *service.NotificationService
 	eventPublisher *event.Publisher
 }
 
-func NewNotificationController(publisher *event.Publisher) NotificationController {
-	return NotificationController{eventPublisher: publisher}
+func NewNotificationController(svc *service.NotificationService, publisher *event.Publisher) *NotificationController {
+	return &NotificationController{service: svc, eventPublisher: publisher}
 }
 
 func (p *NotificationController) SendNotification(ctx *gin.Context) {
-	body, err := ctx.GetRawData()
+	var req models.NotificationDTO
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, models.ApiResponse{Error: "Invalid input", Data: err.Error()})
+		return
+	}
+
+	notification, err := p.service.ProcessNotification(req)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "could not read request body"})
+		ctx.JSON(http.StatusInternalServerError, models.ApiResponse{Error: "Failed to process notification"})
 		return
 	}
 
-	payload := string(body)
-	var req NotificationRequest
-
-	if err := json.Unmarshal(body, &req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	templateWithParameters := util.ProcessTemplate(req.Template, req.Parameters)
-	notification := model.Notification{
-		To:      req.Contact,
-		Subject: req.Subject,
-		Body:    templateWithParameters,
-	}
-
-	go func() {
-		if err := application.SendNotification(notification); err != nil {
-			println("Error sending email:", err.Error())
-		}
-	}()
+	p.service.SendNotification(notification)
 
 	eventMessage := model.Event{
 		ID:        uuid.New().String(),
-		Type:      "NotificationSent",
-		Payload:   payload,
+		Type:      "RECEIVED_NOTIFICATION",
+		Payload:   notification.ToJSON(),
 		Timestamp: time.Now(),
 	}
-	p.eventPublisher.Publish(eventMessage)
-	ctx.JSON(http.StatusOK, gin.H{"status": "Notification sent successfully!"})
+	go p.eventPublisher.Publish(eventMessage)
+	ctx.JSON(http.StatusOK, models.ApiResponse{Message: "Notification sent successfully!"})
 }

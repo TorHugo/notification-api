@@ -2,7 +2,7 @@ package application
 
 import (
 	"notification-api/domain/model"
-	"notification-api/infrastructure/config/repository"
+	"notification-api/infrastructure/repository"
 )
 
 type CreateEvent struct {

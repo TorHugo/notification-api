@@ -3,7 +3,7 @@ package event
 import (
 	"notification-api/application"
 	"notification-api/infrastructure/config/database"
-	"notification-api/infrastructure/config/repository"
+	"notification-api/infrastructure/repository"
 )
 
 func Start() *Publisher {
