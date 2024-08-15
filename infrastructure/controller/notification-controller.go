@@ -56,7 +56,12 @@ func (p *NotificationController) SendSmsNotification(ctx *gin.Context) {
 		return
 	}
 
-	p.service.SendSmsNotification(notification)
+	err = p.service.SendSmsNotification(notification)
+
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, models.ApiResponse{Error: "Failed to process notification"})
+		return
+	}
 
 	eventMessage := model.Event{
 		ID:        uuid.New().String(),

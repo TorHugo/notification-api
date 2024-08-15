@@ -37,11 +37,11 @@ func (ns *NotificationService) SendEmailNotification(notification model.Notifica
 		}
 	}()
 }
-func (ns *NotificationService) SendSmsNotification(notification model.Notification) {
-	go func() {
-		err := application.SendSmsNotification(notification)
-		if err != nil {
-			fmt.Printf("Error sending notification: %v\n", err)
-		}
-	}()
+func (ns *NotificationService) SendSmsNotification(notification model.Notification) error {
+	err := application.SendSmsNotification(notification)
+	if err != nil {
+		fmt.Printf("Error sending notification: %v\n", err)
+		return err
+	}
+	return nil
 }
