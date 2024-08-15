@@ -14,6 +14,7 @@ func SetupRouter() *gin.Engine {
 	notificationService := service.NewNotificationService()
 	notificationController := controller.NewNotificationController(notificationService, eventPublisher)
 
-	r.POST("/api/send-notification", notificationController.SendNotification)
+	r.POST("/api/mail/send-notification", notificationController.SendEmailNotification)
+	r.POST("/api/sms/send-notification", notificationController.SendSmsNotification)
 	return r
 }

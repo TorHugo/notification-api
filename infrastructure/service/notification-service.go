@@ -16,23 +16,30 @@ func NewNotificationService() *NotificationService {
 }
 
 func (ns *NotificationService) ProcessNotification(req models.NotificationDTO) (model.Notification, error) {
-	if req.Contact == "" || req.Subject == "" || req.Template == "" {
+	if req.Contact == "" || req.Template == "" {
 		return model.Notification{}, fmt.Errorf("missing required fields")
 	}
 
 	templateWithParameters := util.ProcessTemplate(req.Template, req.Parameters)
 	notification := model.Notification{
-		To:      req.Contact,
+		Contact: req.Contact,
 		Subject: req.Subject,
 		Body:    templateWithParameters,
 	}
 
 	return notification, nil
 }
-
-func (ns *NotificationService) SendNotification(notification model.Notification) {
+func (ns *NotificationService) SendEmailNotification(notification model.Notification) {
 	go func() {
-		err := application.SendNotification(notification)
+		err := application.SendEmailNotification(notification)
+		if err != nil {
+			fmt.Printf("Error sending notification: %v\n", err)
+		}
+	}()
+}
+func (ns *NotificationService) SendSmsNotification(notification model.Notification) {
+	go func() {
+		err := application.SendSmsNotification(notification)
 		if err != nil {
 			fmt.Printf("Error sending notification: %v\n", err)
 		}

@@ -7,10 +7,10 @@ import (
 	"notification-api/infrastructure/config/mail"
 )
 
-func SendNotification(notification model.Notification) error {
+func SendEmailNotification(notification model.Notification) error {
 	msg := gomail.NewMessage()
 	msg.SetHeader("From", mail.SMTP.Username)
-	msg.SetHeader("To", notification.To)
+	msg.SetHeader("Contact", notification.Contact)
 	msg.SetHeader("Subject", notification.Subject)
 	msg.SetBody("text/plain", notification.Body)
 
