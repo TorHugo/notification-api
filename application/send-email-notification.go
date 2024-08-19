@@ -2,15 +2,16 @@ package application
 
 import (
 	"fmt"
-	"gopkg.in/gomail.v2"
-	"notification-api/domain/model"
+	"notification-api/domain"
 	"notification-api/infrastructure/config/mail"
+
+	"gopkg.in/gomail.v2"
 )
 
-func SendEmailNotification(notification model.Notification) error {
+func SendEmailNotification(notification domain.Notification) error {
 	msg := gomail.NewMessage()
 	msg.SetHeader("From", mail.SMTP.Username)
-	msg.SetHeader("Contact", notification.Contact)
+	msg.SetHeader("To", notification.Contact)
 	msg.SetHeader("Subject", notification.Subject)
 	msg.SetBody("text/plain", notification.Body)
 

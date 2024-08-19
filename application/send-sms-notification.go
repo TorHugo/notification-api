@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"github.com/twilio/twilio-go"
 	openapi "github.com/twilio/twilio-go/rest/api/v2010"
-	"notification-api/domain/model"
+	"notification-api/domain"
 	"notification-api/infrastructure/config/sms"
 )
 
-func SendSmsNotification(notification model.Notification) error {
+func SendSmsNotification(notification domain.Notification) error {
 	client := twilio.NewRestClientWithParams(twilio.ClientParams{
 		Username: sms.Twilio.AccountSID,
 		Password: sms.Twilio.AuthToken,

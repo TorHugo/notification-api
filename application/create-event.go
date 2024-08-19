@@ -1,7 +1,7 @@
 package application
 
 import (
-	"notification-api/domain/model"
+	"notification-api/domain"
 	"notification-api/infrastructure/repository"
 )
 
@@ -15,7 +15,7 @@ func NewCreateEvent(repo *repository.EventRepository) *CreateEvent {
 	}
 }
 
-func (ce *CreateEvent) Execute(event model.Event) error {
+func (ce *CreateEvent) Execute(event domain.Event) error {
 	err := ce.eventRepository.Save(event)
 	if err != nil {
 		return err

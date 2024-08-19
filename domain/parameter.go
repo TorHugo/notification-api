@@ -1,4 +1,4 @@
-package model
+package domain
 
 type Parameter struct {
 	Name  string `json:"name"`

@@ -4,7 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"net/http"
-	"notification-api/domain/model"
+	"notification-api/domain"
 	"notification-api/infrastructure/config/event"
 	"notification-api/infrastructure/controller/models"
 	"notification-api/infrastructure/service"
@@ -34,7 +34,7 @@ func (p *NotificationController) SendEmailNotification(ctx *gin.Context) {
 
 	p.service.SendEmailNotification(notification)
 
-	eventMessage := model.Event{
+	eventMessage := domain.Event{
 		ID:        uuid.New().String(),
 		Type:      "SEND_EMAIL_NOTIFICATION",
 		Payload:   notification.ToJSON(),
@@ -63,7 +63,7 @@ func (p *NotificationController) SendSmsNotification(ctx *gin.Context) {
 		return
 	}
 
-	eventMessage := model.Event{
+	eventMessage := domain.Event{
 		ID:        uuid.New().String(),
 		Type:      "SEND_SMS_NOTIFICATION",
 		Payload:   notification.ToJSON(),
